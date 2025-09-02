@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MQTT Web Client</title>
+  https://unpkg.com/mqtt/dist/mqtt.min.js</script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll; }
+    #status { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>MQTT Web Client</h2>
+
+  <label>Broker URL (wss://...):</label><br>
+  <input id="brokerUrl" placeholder="wss://broker.hivemq.com:8884/mqtt" size="50"><br>
+
+  <label>Subscribe Topic:</label><br>
+  <input id="subTopic" placeholder="e.g. test/topic"><br>
+
+  <label>Publish Topic:</label><br>
+  <input id="pubTopic" placeholder="e.g. test/topic"><br>
+
+  <label>Message:</label><br>
+  <input id="pubMessage" placeholder="Your message"><br>
+
+  <button onclick="connect()">Connect</button>
+  <button onclick="subscribe()">Subscribe</button>
+  <button onclick="publish()">Publish</button>
+
+  <p id="status">Status: Not connected</p>
+  <div id="messages"></div>
+
+  <script>
+    let client;
+
+    function connect() {
+      const url = document.getElementById('brokerUrl').value;
+      client = mqtt.connect(url);
+
+      client.on('connect', () => {
+        document.getElementById('status').innerText = 'Status: Connected';
+      });
+
+      client.on('error', (err) => {
+        document.getElementById('status').innerText = 'Status: Error - ' + err.message;
+      });
+
+      client.on('message', (topic, message) => {
+        const msgDiv = document.getElementById('messages');
+        msgDiv.innerHTML += `<p><strong>${topic}:</strong> ${message}</p>`;
+      });
+
+      client.on('close', () => {
+        document.getElementById('status').innerText = 'Status: Disconnected';
+      });
+    }
+
+    function subscribe() {
+      const topic = document.getElementById('subTopic').value;
+      if (client && client.connected) {
+        client.subscribe(topic, (err) => {
+          if (err) {
+            alert('Subscribe error: ' + err.message);
+          } else {
+            alert('Subscribed to ' + topic);
+          }
+        });
+      }
+    }
+
+    function publish() {
+      const topic = document.getElementById('pubTopic').value;
+      const message = document.getElementById('pubMessage').value;
+      if (client && client.connected) {
+        client.publish(topic, message);
+      }
+    }
+  </script>
+</body>
+</html>
